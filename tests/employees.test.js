@@ -62,7 +62,7 @@ describe("Employee API", () => {
     });
 
     it("Should return 404 if employee not found", async () => {
-      const res = await request(app).get("employees/9999");
+      const res = await request(app).get("/employees/9999");
 
       expect(res.statusCode).toBe(404);
     });

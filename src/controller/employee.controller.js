@@ -36,7 +36,24 @@ const getEmployees = (req, res) => {
   });
 };
 
+const getEmployeeById = (req, res) => {
+  const { id } = req.params;
+
+  db.get("SELECT * FROM employees WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!row) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    res.status(200).json(row);
+  });
+};
+
 module.exports = {
   create: createEmployee,
   getAll: getEmployees,
+  getById: getEmployeeById,
 };
