@@ -67,4 +67,56 @@ describe("Employee API", () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe("PUT /employees/:id", () => {
+    it("Should update an existing employee", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Software Engineer",
+        country: "India",
+        salary: 1000000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app).put(`/employees/${id}`).send({
+        fullName: "R.V.Udayaprakash",
+        jobTitle: "Senior Software Engineer",
+        country: "India",
+        salary: 2000000,
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.fullName).toBe("R.V.Udayaprakash");
+      expect(res.body.salary).toBe(2000000);
+    });
+
+    it("Should return 404 if employee doesn't exist.", async () => {
+      const res = await request(app).put("/employees/9999").send({
+        fullName: "Guest",
+        jobTitle: "None",
+        country: "India",
+        salary: 1000,
+      });
+
+      expect(res.statusCode).toBe(404);
+    });
+
+    it("Should return 400 if required fields are missing.", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Dev",
+        country: "India",
+        salary: 300000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app)
+        .put(`employees/${id}`)
+        .send({ fullName: "Udayaprakash" });
+
+      expect(res.statusCode).toBe(400);
+    });
+  });
 });
