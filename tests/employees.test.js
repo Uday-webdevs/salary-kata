@@ -43,4 +43,28 @@ describe("Employee API", () => {
       expect(res.body.length).toBeGreaterThan(0);
     });
   });
+
+  describe("GET /employees/:id", () => {
+    it("Should return an employee by id", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Software Engineer",
+        country: "India",
+        salary: 1000000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app).get(`/employees/${id}`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.fullName).toBe("Udayaprakash");
+    });
+
+    it("Should return 404 if employee not found", async () => {
+      const res = await request(app).get("employees/9999");
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
 });
