@@ -16,4 +16,13 @@ describe("POST /employees", () => {
     expect(res.body).toMatchObject(employee);
     expect(res.body).toHaveProperty("id");
   });
+
+  it("Should return 400 if required fields are missing", async () => {
+    const res = await request(app)
+      .post("/employees")
+      .send({ fullName: "Udayaprakash" });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body).toHaveProperty("error");
+  });
 });

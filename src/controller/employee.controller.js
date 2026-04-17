@@ -1,21 +1,27 @@
-let employees = [];
-let idCounter = 1;
+const db = require("../db/database");
 
 const createEmployee = (req, res) => {
   const { fullName, jobTitle, country, salary } = req.body;
-  const newEmployee = {
-    id: idCounter++,
-    fullName,
-    jobTitle,
-    country,
-    salary,
-  };
 
-  employees.push(newEmployee);
+  if (!fullName || !jobTitle || !country || !salary) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
 
-  res.status(201).json(newEmployee);
-};
+  const query = `
+  INSERT INTO employees (fullName, jobTitle, country, salary)
+  VALUES (?,?,?,?)`;
 
-module.exports = {
-  create: createEmployee,
+  db.run(query, [fullName, jobTitle, country, salary], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    res.status(201).json({
+      id: this.lastID,
+      fullName,
+      jobTitle,
+      country,
+      salary,
+    });
+  });
 };
