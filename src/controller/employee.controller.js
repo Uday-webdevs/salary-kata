@@ -52,8 +52,39 @@ const getEmployeeById = (req, res) => {
   });
 };
 
+const updateEmployee = (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  const { fullName, jobTitle, country, salary } = req.body;
+
+  if (!fullName || !jobTitle || !country || !salary) {
+    return res.status(400).json({ error: "Missing required fields." });
+  }
+
+  const query = `UPDATE employees SET fullName = ?, jobTitle = ?, country = ?, salary = ? WHERE id = ?`;
+
+  db.run(query, [fullName, jobTitle, country, salary, id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    res.status(200).json({
+      id,
+      fullName,
+      jobTitle,
+      country,
+      salary,
+    });
+  });
+};
+
 module.exports = {
   create: createEmployee,
   getAll: getEmployees,
   getById: getEmployeeById,
+  update: updateEmployee,
 };

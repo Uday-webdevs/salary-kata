@@ -78,7 +78,8 @@ describe("Employee API", () => {
       });
 
       const id = createdEmp.body.id;
-
+      console.log("createdEmp", createdEmp);
+      console.log("id", id);
       const res = await request(app).put(`/employees/${id}`).send({
         fullName: "R.V.Udayaprakash",
         jobTitle: "Senior Software Engineer",
@@ -113,7 +114,7 @@ describe("Employee API", () => {
       const id = createdEmp.body.id;
 
       const res = await request(app)
-        .put(`employees/${id}`)
+        .put(`/employees/${id}`)
         .send({ fullName: "Udayaprakash" });
 
       expect(res.statusCode).toBe(400);
