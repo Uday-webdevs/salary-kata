@@ -25,3 +25,18 @@ const createEmployee = (req, res) => {
     });
   });
 };
+
+const getEmployees = (req, res) => {
+  db.all("SELECT * FROM employees", [], (err, rows) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    res.status(200).json(rows);
+  });
+};
+
+module.exports = {
+  create: createEmployee,
+  getAll: getEmployees,
+};
