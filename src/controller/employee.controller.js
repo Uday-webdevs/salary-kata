@@ -37,7 +37,7 @@ const getEmployees = (req, res) => {
 };
 
 const getEmployeeById = (req, res) => {
-  const { id } = req.params;
+  const id = parseInt(req.params.id, 10);
 
   db.get("SELECT * FROM employees WHERE id = ?", [id], (err, row) => {
     if (err) {
