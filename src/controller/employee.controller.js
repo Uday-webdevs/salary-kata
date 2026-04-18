@@ -3,6 +3,7 @@ const {
   employeeSchema,
   updateEmployeeSchema,
 } = require("../validations/employee.validation");
+const logger = require("../logger/logger");
 
 // CREATE
 const createEmployee = async (req, res) => {
@@ -10,13 +11,19 @@ const createEmployee = async (req, res) => {
     const { error, value } = employeeSchema.validate(req.body);
 
     if (error) {
+      logger.warn("Validation failed on createEmployee", {
+        error: error.details[0].message,
+      });
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const employee = await employeeService.createEmployee(value);
 
+    logger.info("Employee created", { id: employee.id });
+
     res.status(201).json(employee);
   } catch (err) {
+    logger.error("Error creating employee", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -25,8 +32,12 @@ const createEmployee = async (req, res) => {
 const getEmployees = async (req, res) => {
   try {
     const employees = await employeeService.getAllEmployees();
+
+    logger.info("Fetched all employees", { count: employees.length });
+
     res.status(200).json(employees);
   } catch (err) {
+    logger.error("Error fetching employees", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -37,17 +48,20 @@ const getEmployeeById = async (req, res) => {
     const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
+      logger.warn("Invalid employee ID", { id: req.params.id });
       return res.status(400).json({ error: "Invalid employee id" });
     }
 
     const employee = await employeeService.getEmployeeById(id);
 
     if (!employee) {
+      logger.warn("Employee not found", { id });
       return res.status(404).json({ error: "Employee not found." });
     }
 
     res.status(200).json(employee);
   } catch (err) {
+    logger.error("Error fetching employee", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -58,23 +72,31 @@ const updateEmployee = async (req, res) => {
     const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
+      logger.warn("Invalid employee ID for update", { id: req.params.id });
       return res.status(400).json({ error: "Invalid employee id" });
     }
 
     const { error, value } = updateEmployeeSchema.validate(req.body);
 
     if (error) {
+      logger.warn("Validation failed on updateEmployee", {
+        error: error.details[0].message,
+      });
       return res.status(400).json({ error: error.details[0].message });
     }
 
     const updated = await employeeService.updateEmployee(id, value);
 
     if (!updated) {
+      logger.warn("Employee not found for update", { id });
       return res.status(404).json({ error: "Employee not found." });
     }
 
+    logger.info("Employee updated", { id });
+
     res.status(200).json(updated);
   } catch (err) {
+    logger.error("Error updating employee", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -85,17 +107,22 @@ const deleteEmployee = async (req, res) => {
     const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
+      logger.warn("Invalid employee ID for delete", { id: req.params.id });
       return res.status(400).json({ error: "Invalid employee id" });
     }
 
     const deleted = await employeeService.deleteEmployee(id);
 
     if (!deleted) {
+      logger.warn("Employee not found for delete", { id });
       return res.status(404).json({ error: "Employee not found." });
     }
 
+    logger.info("Employee deleted", { id });
+
     res.status(200).json({ message: "Employee deleted." });
   } catch (err) {
+    logger.error("Error deleting employee", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -106,19 +133,24 @@ const getEmployeeSalary = async (req, res) => {
     const id = parseInt(req.params.id, 10);
 
     if (isNaN(id)) {
+      logger.warn("Invalid employee ID for salary", { id: req.params.id });
       return res.status(400).json({ error: "Invalid employee id" });
     }
 
     const employee = await employeeService.getEmployeeById(id);
 
     if (!employee) {
+      logger.warn("Employee not found for salary", { id });
       return res.status(404).json({ error: "Employee not found." });
     }
 
     const salary = employeeService.calculateSalary(employee);
 
+    logger.info("Calculated salary", { id });
+
     res.status(200).json(salary);
   } catch (err) {
+    logger.error("Error calculating salary", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -129,13 +161,17 @@ const getMetricsByCountry = async (req, res) => {
     const { country } = req.params;
 
     if (!country) {
+      logger.warn("Country param missing");
       return res.status(400).json({ error: "Country is required" });
     }
 
     const metrics = await employeeService.getMetricsByCountry(country);
 
+    logger.info("Fetched country metrics", { country });
+
     res.status(200).json(metrics);
   } catch (err) {
+    logger.error("Error fetching country metrics", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
@@ -146,13 +182,17 @@ const getMetricsByJobTitle = async (req, res) => {
     const { jobTitle } = req.params;
 
     if (!jobTitle) {
+      logger.warn("Job title param missing");
       return res.status(400).json({ error: "Job title is required" });
     }
 
     const metrics = await employeeService.getMetricsByJobTitle(jobTitle);
 
+    logger.info("Fetched job metrics", { jobTitle });
+
     res.status(200).json(metrics);
   } catch (err) {
+    logger.error("Error fetching job metrics", { error: err.message });
     res.status(500).json({ error: err.message });
   }
 };
