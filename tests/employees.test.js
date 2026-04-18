@@ -78,8 +78,7 @@ describe("Employee API", () => {
       });
 
       const id = createdEmp.body.id;
-      console.log("createdEmp", createdEmp);
-      console.log("id", id);
+
       const res = await request(app).put(`/employees/${id}`).send({
         fullName: "R.V.Udayaprakash",
         jobTitle: "Senior Software Engineer",
@@ -116,8 +115,33 @@ describe("Employee API", () => {
       const res = await request(app)
         .put(`/employees/${id}`)
         .send({ fullName: "Udayaprakash" });
-
+ 
       expect(res.statusCode).toBe(400);
     });
   });
+
+  describe("DELETE /employees/:id", ()=>{
+    it("Should delete an existing employee", async ()=>{
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Dev",
+        country: "India",
+        salary: 300000,
+      })
+
+      const id = createdEmp.body.id
+
+      const res = await request(app).delete(`/employees/${id}`)
+
+      expect(res.statusCode).toBe(200)
+      expect(res.body.message).toBe("Employee deleted.")
+    })
+
+    it("Should return 404 if the employee does not exist", async ()=>{
+      const res = await request(app).delete("/employees/9999")
+
+      expect(res.statusCode).toBe(404)
+      // expect(res.body).toHaveProperty("error")
+    })
+  })
 });
