@@ -220,14 +220,14 @@ describe("Employee API", () => {
   describe("GET /employees/metrics/country/:country", () => {
     it("Should return min, max and average salary for a country.", async () => {
       await request(app).post("/employees").send({
-        fullName: "A",
+        fullName: "Alice",
         jobTitle: "Dev",
         country: "India",
         salary: 100000,
       });
 
       await request(app).post("/employees").send({
-        fullName: "B",
+        fullName: "Benny",
         jobTitle: "Dev",
         country: "India",
         salary: 200000,
@@ -257,14 +257,14 @@ describe("Employee API", () => {
   describe("GET /employees/metrics/jobTitle/:jobTitle", () => {
     it("Should return min, max and average salary for a job title.", async () => {
       await request(app).post("/employees").send({
-        fullName: "A",
+        fullName: "Alice",
         jobTitle: "Tester",
         country: "India",
         salary: 100000,
       });
 
       await request(app).post("/employees").send({
-        fullName: "B",
+        fullName: "Benny",
         jobTitle: "Tester",
         country: "USA",
         salary: 200000,

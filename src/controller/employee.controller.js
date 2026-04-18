@@ -1,20 +1,19 @@
 const employeeService = require("../services/employee.service");
+const {
+  employeeSchema,
+  updateEmployeeSchema,
+} = require("../validations/employee.validation");
 
 // CREATE
 const createEmployee = async (req, res) => {
   try {
-    const { fullName, jobTitle, country, salary } = req.body;
+    const { error, value } = employeeSchema.validate(req.body);
 
-    if (!fullName || !jobTitle || !country || salary === undefined) {
-      return res.status(400).json({ error: "Missing required fields" });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
     }
 
-    const employee = await employeeService.createEmployee({
-      fullName,
-      jobTitle,
-      country,
-      salary,
-    });
+    const employee = await employeeService.createEmployee(value);
 
     res.status(201).json(employee);
   } catch (err) {
@@ -37,6 +36,10 @@ const getEmployeeById = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
 
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid employee id" });
+    }
+
     const employee = await employeeService.getEmployeeById(id);
 
     if (!employee) {
@@ -53,18 +56,18 @@ const getEmployeeById = async (req, res) => {
 const updateEmployee = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
-    const { fullName, jobTitle, country, salary } = req.body;
 
-    if (!fullName || !jobTitle || !country || salary === undefined) {
-      return res.status(400).json({ error: "Missing required fields." });
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid employee id" });
     }
 
-    const updated = await employeeService.updateEmployee(id, {
-      fullName,
-      jobTitle,
-      country,
-      salary,
-    });
+    const { error, value } = updateEmployeeSchema.validate(req.body);
+
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    const updated = await employeeService.updateEmployee(id, value);
 
     if (!updated) {
       return res.status(404).json({ error: "Employee not found." });
@@ -80,6 +83,10 @@ const updateEmployee = async (req, res) => {
 const deleteEmployee = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid employee id" });
+    }
 
     const deleted = await employeeService.deleteEmployee(id);
 
@@ -97,6 +104,10 @@ const deleteEmployee = async (req, res) => {
 const getEmployeeSalary = async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid employee id" });
+    }
 
     const employee = await employeeService.getEmployeeById(id);
 
@@ -117,6 +128,10 @@ const getMetricsByCountry = async (req, res) => {
   try {
     const { country } = req.params;
 
+    if (!country) {
+      return res.status(400).json({ error: "Country is required" });
+    }
+
     const metrics = await employeeService.getMetricsByCountry(country);
 
     res.status(200).json(metrics);
@@ -129,6 +144,10 @@ const getMetricsByCountry = async (req, res) => {
 const getMetricsByJobTitle = async (req, res) => {
   try {
     const { jobTitle } = req.params;
+
+    if (!jobTitle) {
+      return res.status(400).json({ error: "Job title is required" });
+    }
 
     const metrics = await employeeService.getMetricsByJobTitle(jobTitle);
 
