@@ -1,174 +1,141 @@
-const db = require("../db/database");
+const employeeService = require("../services/employee.service");
 
-const createEmployee = (req, res) => {
-  const { fullName, jobTitle, country, salary } = req.body;
+// CREATE
+const createEmployee = async (req, res) => {
+  try {
+    const { fullName, jobTitle, country, salary } = req.body;
 
-  if (!fullName || !jobTitle || !country || !salary) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  const query = `
-  INSERT INTO employees (fullName, jobTitle, country, salary)
-  VALUES (?,?,?,?)`;
-
-  db.run(query, [fullName, jobTitle, country, salary], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+    if (!fullName || !jobTitle || !country || salary === undefined) {
+      return res.status(400).json({ error: "Missing required fields" });
     }
 
-    res.status(201).json({
-      id: this.lastID,
+    const employee = await employeeService.createEmployee({
       fullName,
       jobTitle,
       country,
       salary,
     });
-  });
-};
 
-const getEmployees = (req, res) => {
-  db.all("SELECT * FROM employees", [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    res.status(200).json(rows);
-  });
-};
-
-const getEmployeeById = (req, res) => {
-  const id = parseInt(req.params.id, 10);
-
-  db.get("SELECT * FROM employees WHERE id = ?", [id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    if (!row) {
-      return res.status(404).json({ error: "Employee not found." });
-    }
-
-    res.status(200).json(row);
-  });
-};
-
-const updateEmployee = (req, res) => {
-  const id = parseInt(req.params.id, 10);
-
-  const { fullName, jobTitle, country, salary } = req.body;
-
-  if (!fullName || !jobTitle || !country || !salary) {
-    return res.status(400).json({ error: "Missing required fields." });
+    res.status(201).json(employee);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+};
 
-  const query = `UPDATE employees SET fullName = ?, jobTitle = ?, country = ?, salary = ? WHERE id = ?`;
+// GET ALL
+const getEmployees = async (req, res) => {
+  try {
+    const employees = await employeeService.getAllEmployees();
+    res.status(200).json(employees);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-  db.run(query, [fullName, jobTitle, country, salary, id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+// GET BY ID
+const getEmployeeById = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
 
-    if (this.changes === 0) {
+    const employee = await employeeService.getEmployeeById(id);
+
+    if (!employee) {
       return res.status(404).json({ error: "Employee not found." });
     }
 
-    res.status(200).json({
-      id,
+    res.status(200).json(employee);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// UPDATE
+const updateEmployee = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    const { fullName, jobTitle, country, salary } = req.body;
+
+    if (!fullName || !jobTitle || !country || salary === undefined) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    const updated = await employeeService.updateEmployee(id, {
       fullName,
       jobTitle,
       country,
       salary,
     });
-  });
-};
 
-const deleteEmployee = (req, res) => {
-  const id = parseInt(req.params.id, 10);
-
-  const query = `DELETE FROM employees WHERE id = ?`;
-
-  db.run(query, [id], function (err) {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
-
-    if (this.changes === 0) {
+    if (!updated) {
       return res.status(404).json({ error: "Employee not found." });
     }
 
-    res.status(200).json({
-      message: "Employee deleted.",
-    });
-  });
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const getEmployeeSalary = (req, res) => {
-  const id = parseInt(req.params.id, 10);
+// DELETE
+const deleteEmployee = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
 
-  db.get("SELECT * FROM employees WHERE id = ?", [id], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+    const deleted = await employeeService.deleteEmployee(id);
 
-    if (!row) {
+    if (!deleted) {
       return res.status(404).json({ error: "Employee not found." });
     }
 
-    const gross = row.salary;
-    let deductions = 0;
-
-    if (row.country === "India") {
-      deductions = gross * 0.1;
-    } else if (row.country === "USA") {
-      deductions = gross * 0.12;
-    }
-
-    const net = gross - deductions;
-
-    res.status(200).json({
-      gross,
-      deductions,
-      net,
-    });
-  });
+    res.status(200).json({ message: "Employee deleted." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const getMetricsByCountry = (req, res) => {
-  const country = req.params.country;
+// SALARY
+const getEmployeeSalary = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
 
-  const query =
-    "SELECT MIN(salary) as min, MAX(salary) as max, AVG(salary) as avg FROM employees WHERE country = ?";
+    const employee = await employeeService.getEmployeeById(id);
 
-  db.get(query, [country], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found." });
     }
 
-    res.status(200).json({
-      min: row.min || 0,
-      max: row.max || 0,
-      avg: row.avg ? Math.round(row.avg) : 0,
-    });
-  });
+    const salary = employeeService.calculateSalary(employee);
+
+    res.status(200).json(salary);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const getMetricsByJobTitle = (req, res) => {
-  const jobTitle = req.params.jobTitle;
+// METRICS BY COUNTRY
+const getMetricsByCountry = async (req, res) => {
+  try {
+    const { country } = req.params;
 
-  const query =
-    "SELECT MIN(salary) as min, MAX(salary) as max, AVG(salary) as avg FROM employees WHERE jobTitle = ?";
+    const metrics = await employeeService.getMetricsByCountry(country);
 
-  db.get(query, [jobTitle], (err, row) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    }
+    res.status(200).json(metrics);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
-    res.status(200).json({
-      min: row.min || 0,
-      max: row.max || 0,
-      avg: row.avg ? Math.round(row.avg) : 0,
-    });
-  });
+// METRICS BY JOB TITLE
+const getMetricsByJobTitle = async (req, res) => {
+  try {
+    const { jobTitle } = req.params;
+
+    const metrics = await employeeService.getMetricsByJobTitle(jobTitle);
+
+    res.status(200).json(metrics);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 module.exports = {
