@@ -115,33 +115,100 @@ describe("Employee API", () => {
       const res = await request(app)
         .put(`/employees/${id}`)
         .send({ fullName: "Udayaprakash" });
- 
+
       expect(res.statusCode).toBe(400);
     });
   });
 
-  describe("DELETE /employees/:id", ()=>{
-    it("Should delete an existing employee", async ()=>{
+  describe("DELETE /employees/:id", () => {
+    it("Should delete an existing employee", async () => {
       const createdEmp = await request(app).post("/employees").send({
         fullName: "Udayaprakash",
         jobTitle: "Dev",
         country: "India",
         salary: 300000,
-      })
+      });
 
-      const id = createdEmp.body.id
+      const id = createdEmp.body.id;
 
-      const res = await request(app).delete(`/employees/${id}`)
+      const res = await request(app).delete(`/employees/${id}`);
 
-      expect(res.statusCode).toBe(200)
-      expect(res.body.message).toBe("Employee deleted.")
-    })
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("Employee deleted.");
+    });
 
-    it("Should return 404 if the employee does not exist", async ()=>{
-      const res = await request(app).delete("/employees/9999")
+    it("Should return 404 if the employee does not exist", async () => {
+      const res = await request(app).delete("/employees/9999");
 
-      expect(res.statusCode).toBe(404)
-      // expect(res.body).toHaveProperty("error")
-    })
-  })
+      expect(res.statusCode).toBe(404);
+    });
+  });
+
+  describe("GET /employees/:id/salary", () => {
+    it("Should calculate salary for India (10% deduction)", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Dev",
+        country: "India",
+        salary: 300000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app).get(`/employees/${id}/salary`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        gross: 300000,
+        deductions: 30000,
+        net: 270000,
+      });
+    });
+
+    it("Should calculate salary for USA (12% deduction)", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Dev",
+        country: "USA",
+        salary: 300000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app).get(`/employees/${id}/salary`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        gross: 300000,
+        deductions: 36000,
+        net: 264000,
+      });
+    });
+
+    it("Should return full salary for other countries (0 deduction)", async () => {
+      const createdEmp = await request(app).post("/employees").send({
+        fullName: "Udayaprakash",
+        jobTitle: "Dev",
+        country: "Switzerland",
+        salary: 300000,
+      });
+
+      const id = createdEmp.body.id;
+
+      const res = await request(app).get(`/employees/${id}/salary`);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        gross: 300000,
+        deductions: 0,
+        net: 300000,
+      });
+    });
+
+    it("Should return 404 if the employee does not exist", async () => {
+      const res = await request(app).delete("/employees/9999/salary");
+
+      expect(res.statusCode).toBe(404);
+    });
+  });
 });
