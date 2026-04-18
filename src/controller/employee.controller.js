@@ -85,7 +85,6 @@ const updateEmployee = (req, res) => {
 const deleteEmployee = (req, res) => {
   const id = parseInt(req.params.id, 10);
 
-
   const query = `DELETE FROM employees WHERE id = ?`;
 
   db.run(query, [id], function (err) {
@@ -98,7 +97,38 @@ const deleteEmployee = (req, res) => {
     }
 
     res.status(200).json({
-      message: "Employee deleted."
+      message: "Employee deleted.",
+    });
+  });
+};
+
+const getEmployeeSalary = (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+  db.get("SELECT * FROM employees WHERE id = ?", [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (!row) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    const gross = row.salary;
+    let deductions = 0;
+
+    if (row.country === "India") {
+      deductions = gross * 0.1;
+    } else if (row.country === "USA") {
+      deductions = gross * 0.12;
+    }
+
+    const net = gross - deductions;
+
+    res.status(200).json({
+      gross,
+      deductions,
+      net,
     });
   });
 };
@@ -108,5 +138,6 @@ module.exports = {
   getAll: getEmployees,
   getById: getEmployeeById,
   update: updateEmployee,
-  delete: deleteEmployee
+  delete: deleteEmployee,
+  getSalary: getEmployeeSalary,
 };
