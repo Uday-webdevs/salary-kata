@@ -211,4 +211,31 @@ describe("Employee API", () => {
       expect(res.statusCode).toBe(404);
     });
   });
+
+  describe("GET /metrics/country/:country", () => {
+    it("Should return min, max and average salary for a country.", async () => {
+      await request(app).post("/employees").send({
+        fullName: "A",
+        jobTitle: "Dev",
+        country: "India",
+        salary: 100000,
+      });
+
+      await request(app).post("/employees").send({
+        fullName: "B",
+        jobTitle: "Dev",
+        country: "India",
+        salary: 200000,
+      });
+
+      const res = await request(app).get("/employees/metrics/country/India");
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        min: 100000,
+        max: 200000,
+        avg: 150000,
+      });
+    });
+  });
 });
