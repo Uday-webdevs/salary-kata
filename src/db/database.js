@@ -4,7 +4,7 @@ const db = new sqlite3.Database(":memory:");
 
 db.serialize(() => {
   db.run(`
-        CREATE TABLE employees (
+        CREATE TABLE IF NOT EXISTS employees (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         fullName TEXT,
         jobTitle TEXT,
