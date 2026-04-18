@@ -1,5 +1,10 @@
 const request = require("supertest");
 const app = require("../src/app");
+const db = require("../src/db/database");
+
+beforeEach((done) => {
+  db.run("DELETE FROM employees", done);
+});
 
 describe("Employee API", () => {
   describe("POST /employees", () => {
