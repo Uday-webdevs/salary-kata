@@ -1,6 +1,8 @@
 const sqlite3 = require("sqlite3").verbose();
 
-const db = new sqlite3.Database(":memory:");
+const isTest = process.env.NODE_ENV === "test";
+
+const db = new sqlite3.Database(isTest ? ":memory:" : "./database.sqlite");
 
 db.serialize(() => {
   db.run(`
