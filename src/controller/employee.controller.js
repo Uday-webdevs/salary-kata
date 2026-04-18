@@ -82,9 +82,31 @@ const updateEmployee = (req, res) => {
   });
 };
 
+const deleteEmployee = (req, res) => {
+  const id = parseInt(req.params.id, 10);
+
+
+  const query = `DELETE FROM employees WHERE id = ?`;
+
+  db.run(query, [id], function (err) {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: "Employee not found." });
+    }
+
+    res.status(200).json({
+      message: "Employee deleted."
+    });
+  });
+};
+
 module.exports = {
   create: createEmployee,
   getAll: getEmployees,
   getById: getEmployeeById,
   update: updateEmployee,
+  delete: deleteEmployee
 };
