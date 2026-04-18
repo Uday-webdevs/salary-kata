@@ -133,6 +133,25 @@ const getEmployeeSalary = (req, res) => {
   });
 };
 
+const getMetricsByCountry = (req, res) => {
+  const country = req.params.country;
+
+  const query =
+    "SELECT MIN(salary) as min, MAX(salary) as max, AVG(salary) as avg FROM employees WHERE country = ?";
+
+  db.get(query, [country], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    console.log("DB ROW:", row);
+    res.status(200).json({
+      min: row.min || 0,
+      max: row.max || 0,
+      avg: row.avg ? Math.round(row.avg) : 0,
+    });
+  });
+};
+
 module.exports = {
   create: createEmployee,
   getAll: getEmployees,
@@ -140,4 +159,5 @@ module.exports = {
   update: updateEmployee,
   delete: deleteEmployee,
   getSalary: getEmployeeSalary,
+  getMetricsByCountry,
 };
