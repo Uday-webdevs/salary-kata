@@ -1,7 +1,12 @@
 const app = require("./app");
+require("dotenv").config();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
+const isTest = process.env.NODE_ENV === "test";
 
 app.listen(PORT, () => {
-  console.log(`Server is runnint on port ${PORT}`);
+  if (isTest) {
+    console.log(`Server is runnint on port ${PORT}`);
+  }
 });
