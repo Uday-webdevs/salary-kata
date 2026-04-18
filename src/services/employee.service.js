@@ -22,12 +22,36 @@ const createEmployee = ({ fullName, jobTitle, country, salary }) => {
   });
 };
 
-// GET ALL
-const getAllEmployees = () => {
+// ✅ FIXED: GET ALL WITH SAFE DEFAULT PARAMS
+const getAllEmployees = (params = {}) => {
+  const { page = 1, limit = 10 } = params;
+
   return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM employees", [], (err, rows) => {
+    const offset = (page - 1) * limit;
+
+    const dataQuery = `
+      SELECT * FROM employees
+      LIMIT ? OFFSET ?
+    `;
+
+    const countQuery = `SELECT COUNT(*) as total FROM employees`;
+
+    db.all(dataQuery, [limit, offset], (err, rows) => {
       if (err) return reject(err);
-      resolve(rows);
+
+      db.get(countQuery, [], (err, countResult) => {
+        if (err) return reject(err);
+
+        resolve({
+          data: rows,
+          pagination: {
+            total: countResult.total,
+            page,
+            limit,
+            totalPages: Math.ceil(countResult.total / limit),
+          },
+        });
+      });
     });
   });
 };
@@ -82,7 +106,7 @@ const deleteEmployee = (id) => {
   });
 };
 
-// SALARY CALCULATION
+// SALARY
 const calculateSalary = (employee) => {
   const gross = employee.salary;
   let deductions = 0;
@@ -118,7 +142,7 @@ const getMetricsByCountry = (country) => {
   });
 };
 
-// METRICS BY JOB TITLE
+// METRICS BY JOB
 const getMetricsByJobTitle = (jobTitle) => {
   return new Promise((resolve, reject) => {
     const query = `

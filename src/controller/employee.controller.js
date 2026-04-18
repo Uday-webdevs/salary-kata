@@ -31,11 +31,23 @@ const createEmployee = async (req, res) => {
 // GET ALL
 const getEmployees = async (req, res) => {
   try {
-    const employees = await employeeService.getAllEmployees();
+    let { page = 1, limit = 10 } = req.query;
 
-    logger.info("Fetched all employees", { count: employees.length });
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
 
-    res.status(200).json(employees);
+    if (isNaN(page) || page < 1) page = 1;
+    if (isNaN(limit) || limit < 1) limit = 10;
+
+    const result = await employeeService.getAllEmployees({ page, limit });
+
+    logger.info("Fetched employees with pagination", {
+      page,
+      limit,
+      count: result.data.length,
+    });
+
+    res.status(200).json(result);
   } catch (err) {
     logger.error("Error fetching employees", { error: err.message });
     res.status(500).json({ error: err.message });

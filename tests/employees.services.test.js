@@ -4,6 +4,7 @@ const db = require("../src/db/database");
 jest.mock("../src/db/database");
 
 describe("Employee Service Layer", () => {
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -34,19 +35,28 @@ describe("Employee Service Layer", () => {
   });
 
   // -----------------------------
-  // GET ALL
+  // GET ALL (FIXED)
   // -----------------------------
   describe("getAllEmployees", () => {
     it("should return all employees", async () => {
       const mockRows = [{ id: 1, fullName: "John" }];
 
+      // ✅ MOCK db.all
       db.all.mockImplementation((query, params, callback) => {
         callback(null, mockRows);
       });
 
+      // ✅ FIX: MUST mock db.get (pagination count query)
+      db.get.mockImplementation((query, params, callback) => {
+        callback(null, { total: mockRows.length });
+      });
+
       const result = await employeeService.getAllEmployees();
 
-      expect(result).toEqual(mockRows);
+      expect(result.data).toEqual(mockRows);
+      expect(result.pagination.total).toBe(1);
+      expect(result.pagination.page).toBe(1);
+      expect(result.pagination.limit).toBe(10);
     });
   });
 
@@ -66,14 +76,14 @@ describe("Employee Service Layer", () => {
       expect(result).toEqual(mockEmployee);
     });
 
-    it("should return null if employee not found", async () => {
+    it("should return undefined if employee not found", async () => {
       db.get.mockImplementation((query, params, callback) => {
         callback(null, undefined);
       });
 
       const result = await employeeService.getEmployeeById(99);
 
-      expect(result).toBeUndefined(); // matches your service behavior
+      expect(result).toBeUndefined();
     });
   });
 
@@ -143,7 +153,7 @@ describe("Employee Service Layer", () => {
   });
 
   // -----------------------------
-  // SALARY CALCULATION
+  // SALARY
   // -----------------------------
   describe("calculateSalary", () => {
     it("should calculate salary for India", () => {
@@ -170,7 +180,7 @@ describe("Employee Service Layer", () => {
       });
     });
 
-    it("should return full salary for other countries", () => {
+    it("should return full salary for others", () => {
       const employee = { salary: 50000, country: "Germany" };
 
       const result = employeeService.calculateSalary(employee);
@@ -184,10 +194,10 @@ describe("Employee Service Layer", () => {
   });
 
   // -----------------------------
-  // METRICS BY COUNTRY
+  // METRICS
   // -----------------------------
   describe("getMetricsByCountry", () => {
-    it("should return salary metrics", async () => {
+    it("should return metrics", async () => {
       db.get.mockImplementation((query, params, callback) => {
         callback(null, { min: 10000, max: 20000, avg: 15000 });
       });
@@ -202,11 +212,8 @@ describe("Employee Service Layer", () => {
     });
   });
 
-  // -----------------------------
-  // METRICS BY JOB TITLE
-  // -----------------------------
   describe("getMetricsByJobTitle", () => {
-    it("should return salary metrics", async () => {
+    it("should return metrics", async () => {
       db.get.mockImplementation((query, params, callback) => {
         callback(null, { min: 10000, max: 30000, avg: 20000 });
       });
@@ -220,4 +227,5 @@ describe("Employee Service Layer", () => {
       });
     });
   });
+
 });
