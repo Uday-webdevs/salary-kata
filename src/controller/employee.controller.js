@@ -143,7 +143,26 @@ const getMetricsByCountry = (req, res) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
-    console.log("DB ROW:", row);
+
+    res.status(200).json({
+      min: row.min || 0,
+      max: row.max || 0,
+      avg: row.avg ? Math.round(row.avg) : 0,
+    });
+  });
+};
+
+const getMetricsByJobTitle = (req, res) => {
+  const jobTitle = req.params.jobTitle;
+
+  const query =
+    "SELECT MIN(salary) as min, MAX(salary) as max, AVG(salary) as avg FROM employees WHERE jobTitle = ?";
+
+  db.get(query, [jobTitle], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
     res.status(200).json({
       min: row.min || 0,
       max: row.max || 0,
@@ -160,4 +179,5 @@ module.exports = {
   delete: deleteEmployee,
   getSalary: getEmployeeSalary,
   getMetricsByCountry,
+  getMetricsByJobTitle,
 };

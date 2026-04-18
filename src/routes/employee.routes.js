@@ -5,6 +5,10 @@ const employeeController = require("../controller/employee.controller");
 
 // ✅ SPECIFIC routes FIRST
 router.get("/metrics/country/:country", employeeController.getMetricsByCountry);
+router.get(
+  "/metrics/jobTitle/:jobTitle",
+  employeeController.getMetricsByJobTitle,
+);
 router.get("/:id/salary", employeeController.getSalary);
 
 // ✅ THEN GENERIC routes
