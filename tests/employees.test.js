@@ -242,6 +242,16 @@ describe("Employee API", () => {
         avg: 150000,
       });
     });
+
+    it("Should return 0 values if no employees exist for the country.", async () => {
+      const res = await request(app).get("/employees/metrics/country/:country");
+
+      expect(res.body).toEqual({
+        min: 0,
+        max: 0,
+        avg: 0,
+      });
+    });
   });
 
   describe("GET /employees/metrics/jobTitle/:jobTitle", () => {
@@ -267,6 +277,18 @@ describe("Employee API", () => {
         min: 100000,
         max: 200000,
         avg: 150000,
+      });
+    });
+
+    it("Should return 0 values if no employees exist for the job title.", async () => {
+      const res = await request(app).get(
+        "/employees/metrics/jobTitle/:jobTitle",
+      );
+
+      expect(res.body).toEqual({
+        min: 0,
+        max: 0,
+        avg: 0,
       });
     });
   });
